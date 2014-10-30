@@ -84,9 +84,11 @@ void particleInteract(int offset)
 
 void moveParticle(vec3 accel)
 {
+	// TODO: leapfrog integration
 	vec3 v = own_vel + time_step * accel;
 	vec3 p = own_pos + time_step * v;
 
+	// Simple collision detection and response
 	if(p.x > -0.5)
 	{
 		p.x = -0.5;
