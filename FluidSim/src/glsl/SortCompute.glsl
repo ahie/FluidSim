@@ -1,6 +1,6 @@
 #version 430 core
 
-layout (local_size_x = 256) in;
+layout (local_size_x = 512) in;
 
 layout (rg32i, binding = 0) uniform iimageBuffer sorted_groupID_buffer;
 layout (location = 0) uniform int i;

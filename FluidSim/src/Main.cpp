@@ -5,6 +5,7 @@
 #include <GLM/glm.hpp>
 #include <GLM/gtc/matrix_transform.hpp>
 #include <GLM/gtc/random.hpp>
+
 #include "LoadShaders.h"
 
 #ifdef _MSC_VER
@@ -14,20 +15,20 @@
 #endif
 
 // Constants
-const int MAX_PARTICLE_COUNT = 262144;
-const int MAX_PARTICLE_COUNT_POWER = 18;
-const int PARTICLE_COUNT = 262144;
+const int MAX_PARTICLE_COUNT = 131072;
+const int MAX_PARTICLE_COUNT_POWER = 17;
+const int PARTICLE_COUNT = 131072;
 const GLint GRID_CELL_COUNT = 128;
 const GLfloat GRID_ORIGIN[] = { -10.0f, -10.0f, -10.0f };
 const GLfloat GRID_CELL_SIZE = 0.15625f/2.0f;
-const GLfloat PARTICLE_MASS = 0.49934270439;
+const GLfloat PARTICLE_MASS = 1000.f * 8.f * 8.f * 2.f / 131072.f;
 const GLfloat SMOOTHING_LENGTH = 0.15625f;
-const GLfloat REST_DENSITY = 600.0f;
-const GLfloat GAS_CONSTANT = 32.8f;
-const GLfloat VISCOSITY = 25.0f;
+const GLfloat REST_DENSITY = 1000.0f;
+const GLfloat GAS_CONSTANT = 800.0f;
+const GLfloat VISCOSITY = 402.f;
 const GLfloat SURFACE_TENSION_COEFFICIENT = 0.0728f;
 const GLfloat SURFACE_TENSION_THRESHOLD = 7.065f;
-const GLfloat TIME_STEP = 0.01f;
+const GLfloat TIME_STEP = 0.001f;
 
 // Pointer to main window
 GLFWwindow* window;
@@ -109,9 +110,22 @@ void initBuffers()
 	glGenTextures(1, &offset_texture);
 
 	glm::vec4* initial_particle_positions = new glm::vec4[PARTICLE_COUNT];
-	for (int i = 0; i < MAX_PARTICLE_COUNT; i++)
+	int pcount = pow(PARTICLE_COUNT / 4, 1.f / 3.f);
+	int index = 0;
+	for (size_t i = 0; i < pcount; i++)
 	{
-		*(initial_particle_positions + i) = glm::vec4(glm::ballRand(3.3f)-glm::vec3(4.0,4.0,4.0), 0.0);
+		for (size_t j = 0; j < 2 * pcount; j++)
+		{
+			for (size_t k = 0; k < 2 * pcount; k++)
+			{
+				*(initial_particle_positions + index) = glm::vec4(
+					glm::vec3(k * 8.f / (2.f * (float)pcount),
+					j * 8.f / (2.f * (float)pcount),
+					i * 2.f / (float)pcount)
+					- glm::vec3(8.499, 8.499, 8.499), 0.0);
+				index++;
+			}
+		}
 	}
 
 	// position buffers
@@ -174,6 +188,8 @@ void demoInit()
 	// CONTEXT SETTINGS
 	glClearColor(.2f, .2f, .2f, 1.f);
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// SHADER INIT
 	initShaders();
@@ -190,7 +206,7 @@ void renderLoop()
 
 	// Update groupID_TBO
 	glUseProgram(groupCompute);
-	glUniform3fv(0, 1, GRID_ORIGIN);
+	glUniform3fv(0, 1, GRID_ORIGIN); 
 	glUniform1i(1, GRID_CELL_COUNT);
 	glUniform1f(2, GRID_CELL_SIZE);
 	glBindImageTexture(0, groupID_TBO, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RG32I);
@@ -253,18 +269,28 @@ void renderLoop()
 	glDispatchCompute(PARTICLE_COUNT / 128, 1, 1);
 	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
-	// Set up matrix for viewing & render
-	glm::mat4 mvp = glm::perspective(45.0f, 16.0f / 9.0f, 0.1f, 1000.0f) *
-		glm::translate(glm::mat4(1.0f), glm::vec3(5.5f, 6.5f, -18.0f)) *
-		glm::rotate(glm::mat4(1.0f), 15.0f, glm::vec3(1.0f, 0.0f, 0.0f)) *
-		glm::rotate(glm::mat4(1.0f), 50.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+	// Rendering
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glUseProgram(renderProg);
+	glUniform1f(1, REST_DENSITY);
 	glBindBuffer(GL_ARRAY_BUFFER, position_VBO[writeonly_index]);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(4, GL_FLOAT, 0, 0);
+
+	glViewport(0, 0, 1280 / 2, 720);
+	glm::mat4 mvp = glm::perspective(45.0f, 0.888888888f, 0.1f, 1000.0f) *
+		glm::translate(glm::mat4(1.0f), glm::vec3(6.5f, 5.5f, -18.0f)) *
+		glm::rotate(glm::mat4(1.0f), 15.0f, glm::vec3(1.0f, 0.0f, 0.0f)) *
+		glm::rotate(glm::mat4(1.0f), 50.0f, glm::vec3(0.0f, 1.0f, 0.0f));
 	glUniformMatrix4fv(0, 1, GL_FALSE, &(mvp)[0][0]);
 	glDrawArrays(GL_POINTS, 0, PARTICLE_COUNT);
+
+	glViewport(1280 / 2, 0, 1280 / 2, 720);
+	mvp = glm::ortho(-8.5f, -0.5f, -8.5f, -0.5f, 0.f, 10.f) *
+			glm::lookAt(glm::vec3(-8.5f,0,0),glm::vec3(0,0,0),glm::vec3(0,1,0));
+	glUniformMatrix4fv(0, 1, GL_FALSE, &(mvp)[0][0]);
+	glDrawArrays(GL_POINTS, 0, PARTICLE_COUNT);
+
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glfwSwapBuffers(window);
 }

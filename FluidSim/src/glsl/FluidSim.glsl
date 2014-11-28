@@ -40,7 +40,8 @@ float laplace_color_field = 0.0f;
 float smoothing_length_sixth_power = pow(smoothing_length,6);
 float smoothing_length_ninth_power = pow(smoothing_length,9);
 
-float damping_factor = 0.9;
+float gravitational_accel = 9.81;
+float damping_factor = 0.1;
 
 float laplacePoly6Kernel(float dist)
 {
@@ -131,11 +132,11 @@ void applyForces()
 	if(stension_normal_length > surface_tension_threshold)
 	{
 		vec3 f_stension = -surface_tension_coefficient * laplace_color_field * (stension_normal / stension_normal_length);
-		vec3 accel = ((f_pressure + f_viscosity + f_stension)/own_density) + 9.81 * vec3(0, -1, 0);
+		vec3 accel = ((f_pressure + f_viscosity + f_stension)/own_density) + gravitational_accel * vec3(0, -1, 0);
 		moveParticle(accel);
 	} else
 	{
-		vec3 accel = ((f_pressure + f_viscosity)/own_density) + 9.81 * vec3(0, -1, 0);
+		vec3 accel = ((f_pressure + f_viscosity)/own_density) + gravitational_accel * vec3(0, -1, 0);
 		moveParticle(accel);
 	}
 }
