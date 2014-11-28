@@ -8,7 +8,8 @@ out vec3 Color;
 
 void main(void)
 {
-	// Visualize difference between density and rest density
+	// Visualize difference between density and rest density.
+	// Could also be done by shifting hue?
 	float density = vertexPosition.w;
 	if(density >= rest_density*1.6)
 	{
