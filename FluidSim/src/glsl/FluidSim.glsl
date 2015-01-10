@@ -17,31 +17,27 @@ layout (location = 3) uniform float rest_density;
 layout (location = 4) uniform float gas_constant;
 layout (location = 5) uniform float viscosity;
 layout (location = 6) uniform float time_step;
-layout (location = 7) uniform int group;
-layout (location = 8) uniform float surface_tension_coefficient;
-layout (location = 9) uniform float surface_tension_threshold;
+layout (location = 7) uniform float surface_tension_coefficient;
+layout (location = 8) uniform float surface_tension_threshold;
 
-layout (location = 10) uniform int max_particle_count;
-layout (location = 11) uniform int particle_count_power;
+layout (location = 9) uniform int buffer_offset;
+int invocation_id = int(gl_GlobalInvocationID.x) + buffer_offset;
 
-int GIIDX = int(gl_GlobalInvocationID.x) + group;
-
-vec3 own_pos = vec3(imageLoad(position_read_buffer, GIIDX));
-vec3 own_vel = vec3(imageLoad(velocity_read_buffer, GIIDX));
-float own_density = imageLoad(position_read_buffer, GIIDX).w;
+vec3 own_pos = vec3(imageLoad(position_read_buffer, invocation_id));
+vec3 own_vel = vec3(imageLoad(velocity_read_buffer, invocation_id));
+float own_density = imageLoad(position_read_buffer, invocation_id).w;
 float own_pressure = gas_constant * (own_density - rest_density);
 
 vec3 f_viscosity = vec3(0);
 vec3 f_pressure = vec3(0);
-
 vec3 stension_normal = vec3(0);
 float laplace_color_field = 0.0f;
 
-float smoothing_length_sixth_power = pow(smoothing_length,6);
-float smoothing_length_ninth_power = pow(smoothing_length,9);
+const float smoothing_length_sixth_power = pow(smoothing_length,6);
+const float smoothing_length_ninth_power = pow(smoothing_length,9);
 
 float gravitational_accel = 9.81;
-float damping_factor = 0.1;
+float damping_factor = 0.9;
 
 float laplacePoly6Kernel(float dist)
 {
@@ -121,8 +117,8 @@ void moveParticle(vec3 accel)
 		v.z = -v.z*damping_factor;
 	}
 
-	imageStore(velocity_write_buffer, GIIDX, vec4(v,0));
-	imageStore(position_write_buffer, GIIDX, vec4(p,own_density));
+	imageStore(velocity_write_buffer, invocation_id, vec4(v,0));
+	imageStore(position_write_buffer, invocation_id, vec4(p,own_density));
 }
 
 void applyForces()
@@ -143,12 +139,12 @@ void applyForces()
 
 void main(void)
 {
-	float ID = float(imageLoad(groupID_buffer, GIIDX).y);
+	float ID = float(imageLoad(groupID_buffer, invocation_id).y);
 	if(ID > -.9f)
 	{
 		for(int i = 0; i < 27; i++)
 		{
-			ivec4 offsets = imageLoad(offset_texture, GIIDX * 27 + i);
+			ivec4 offsets = imageLoad(offset_texture, invocation_id * 27 + i);
 			int startOffset = offsets.r;
 			if(startOffset != -1)
 			{
