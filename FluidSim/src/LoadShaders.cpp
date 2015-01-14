@@ -7,12 +7,13 @@
 static const GLchar* ReadShader(const char* filename)
 {
 	std::streampos len;
-	char* source = nullptr;
+	GLchar* source = nullptr;
 
 	std::ifstream file(filename, std::ios::in | std::ios::binary | std::ios::ate);
-	if (file.is_open()) {
+	if (file.is_open()) 
+	{
 		len = file.tellg();
-		source = new char[(unsigned int)len + 1];
+		source = new GLchar[(unsigned int)len + 1];
 		source[len] = 0;
 
 		file.seekg(0, std::ios::beg);
@@ -27,7 +28,8 @@ GLuint LoadShaders(std::initializer_list<ShaderInfo> shaderInfos)
 {
     GLuint program = glCreateProgram();
 
-	for (auto shaderInfo : shaderInfos) {
+	for (auto shaderInfo : shaderInfos) 
+	{
 		GLuint shader = glCreateShader(shaderInfo.type);
 		const GLchar* source = ReadShader(shaderInfo.filename);
 		glShaderSource(shader, 1, &source, NULL);

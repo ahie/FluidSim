@@ -3,7 +3,8 @@
 #include <GL/gl.h>
 #include <initializer_list>
 
-struct ShaderInfo {
+struct ShaderInfo 
+{
     GLenum       type;
     const char*  filename;
 };
