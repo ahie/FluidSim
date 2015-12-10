@@ -93,8 +93,10 @@ void main(void)
 					int xj = xi + x;
 					int yj = yi + y;
 					int zj = zi + z;
-					// true if valid cell
-					if(0 <= xj && xj < grid_cell_count && 0 <= yj && yj < grid_cell_count && 0 <= zj && zj < grid_cell_count)
+
+					if( 0 <= xj && xj < grid_cell_count &&
+						0 <= yj && yj < grid_cell_count &&
+						0 <= zj && zj < grid_cell_count )
 					{
 						int CID = xj + int(grid_cell_count) * yj + int(grid_cell_count) * int(grid_cell_count) * zj;
 						int startOffset = getStartOffset(CID, 0, max_particle_count - 1);

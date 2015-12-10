@@ -81,43 +81,52 @@ void particleInteract(int offset)
 
 void moveParticle(vec3 accel)
 {
-	// TODO: leapfrog integration
-	vec3 v = own_vel + time_step * accel;
-	vec3 p = own_pos + time_step * v;
+	vec3 v; // new velocity
+	vec3 p; // new position
+	if(imageLoad(velocity_read_buffer, invocation_id).a < 0.f) // initialize leapfrog
+	{
+		v = own_vel + 0.5f * time_step * accel;
+		p = own_pos + time_step * v;
+	}
+	else
+	{
+		v = own_vel + time_step * accel;
+		p = own_pos + time_step * v;
+	}
 
 	// Simple collision detection and response
-	if(p.x > -0.5)
+	if(p.x > 10)
 	{
-		p.x = -0.5;
+		p.x = 9.99;
 		v.x = -v.x*damping_factor;
 	}
-	if(p.x < -8.5)
+	if(p.x < 0)
 	{
-		p.x = -8.5;
+		p.x = 0.01;
 		v.x = -v.x*damping_factor;
 	}
-	if(p.y > -0.5)
+	if(p.y > 10)
 	{
-		p.y = -0.5;
+		p.y = 9.99;
 		v.y = -v.y*damping_factor;
 	}
-	if(p.y < -8.5)
+	if(p.y < 0)
 	{
-		p.y = -8.5;
+		p.y = 0.01;
 		v.y = -v.y*damping_factor;
 	}
-	if(p.z > -0.5)
+	if(p.z > 10)
 	{
-		p.z = -0.5;
+		p.z = 9.99;
 		v.z = -v.z*damping_factor;
 	}
-	if(p.z < -8.5)
+	if(p.z < 0)
 	{
-		p.z = -8.5;
+		p.z = 0.01;
 		v.z = -v.z*damping_factor;
 	}
 
-	imageStore(velocity_write_buffer, invocation_id, vec4(v,0));
+	imageStore(velocity_write_buffer, invocation_id, vec4(v,0.f));
 	imageStore(position_write_buffer, invocation_id, vec4(p,own_density));
 }
 

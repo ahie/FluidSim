@@ -15,17 +15,17 @@
 #endif
 
 // Constants
-const int MAX_PARTICLE_COUNT = 65536;
-const int MAX_PARTICLE_COUNT_POWER = 16;
-const int PARTICLE_COUNT = 65536;
+const int MAX_PARTICLE_COUNT = 131072;
+const int MAX_PARTICLE_COUNT_POWER = 17;
+const int PARTICLE_COUNT = 131072;
 const GLint GRID_CELL_COUNT = 64;
-const GLfloat GRID_ORIGIN[] = { -10.0f, -10.0f, -10.0f };
-const GLfloat GRID_CELL_SIZE = 0.15625f;
-const GLfloat PARTICLE_MASS = 1000.f * 8.f * 8.f * 2.f / 65536.f;
-const GLfloat SMOOTHING_LENGTH = 0.15625f*2.0f;
+const GLfloat GRID_ORIGIN[] = { 0.f, 0.f, 0.f };
+const GLfloat GRID_CELL_SIZE = 0.3125f;
+const GLfloat PARTICLE_MASS = 1000.f * 10.f * 10.f * 2.5f / 131072.f;
+const GLfloat SMOOTHING_LENGTH = 0.3125f;
 const GLfloat REST_DENSITY = 1000.0f;
 const GLfloat GAS_CONSTANT = 400.0f;
-const GLfloat VISCOSITY = 1002.f;
+const GLfloat VISCOSITY = 402.f;
 const GLfloat SURFACE_TENSION_COEFFICIENT = 0.0728f;
 const GLfloat SURFACE_TENSION_THRESHOLD = 7.065f;
 const GLfloat TIME_STEP = 0.003f;
@@ -45,7 +45,6 @@ static GLuint position_VBO[2];
 static GLuint velocity_VBO[2];
 static GLuint groupID_VBO;
 static GLuint sorted_groupID_VBO;
-static GLuint neighbor_VBO;
 static GLuint offset_buffer;
 
 // TBO IDs
@@ -83,17 +82,16 @@ void initBuffers()
 	glm::vec4* initial_particle_positions = new glm::vec4[PARTICLE_COUNT];
 	int pcount = pow(PARTICLE_COUNT / 4, 1.f / 3.f);
 	int index = 0;
-	for (size_t i = 0; i < pcount; i++)
+	for (size_t i = 1; i < pcount; i++)
 	{
-		for (size_t j = 0; j < 2 * pcount; j++)
+		for (size_t j = 1; j < 2 * pcount; j++)
 		{
-			for (size_t k = 0; k < 2 * pcount; k++)
+			for (size_t k = 1; k < 2 * pcount; k++)
 			{
 				*(initial_particle_positions + index) = glm::vec4(
-					glm::vec3(k * 8.f / (2.f * (float)pcount),
-					j * 8.f / (2.f * (float)pcount),
-					i * 2.f / (float)pcount)
-					- glm::vec3(8.499, 8.499, 8.499), 0.0);
+					glm::vec3(k * 10.f / (2.f * (float)pcount),
+					j * 10.f / (2.f * (float)pcount),
+					i * 2.5f / (float)pcount), 0.0);
 				index++;
 			}
 		}
@@ -135,7 +133,7 @@ void initBuffers()
 		glMapBufferRange(GL_ARRAY_BUFFER, 0, PARTICLE_COUNT * sizeof(glm::vec4),
 		GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
 	for (int i = 0; i < PARTICLE_COUNT; i++)
-		vels1[i] = glm::vec4(0.0f);
+		vels1[i] = glm::vec4(0.0f,0.f,0.f,-1.f);
 	glUnmapBuffer(GL_ARRAY_BUFFER);
 	glBindTexture(GL_TEXTURE_BUFFER, velocity_TBO[0]);
 	glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, velocity_VBO[0]);
@@ -248,16 +246,23 @@ void renderLoop()
 	glVertexPointer(4, GL_FLOAT, 0, 0);
 
 	glViewport(0, 0, 1280 / 2, 720);
-	glm::mat4 mvp = glm::perspective(45.0f, 0.888888888f, 0.1f, 1000.0f) *
-		glm::translate(glm::mat4(1.0f), glm::vec3(6.5f, 5.5f, -18.0f)) *
-		glm::rotate(glm::mat4(1.0f), 15.0f, glm::vec3(1.0f, 0.0f, 0.0f)) *
-		glm::rotate(glm::mat4(1.0f), 50.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+	glm::mat4 mvp = glm::perspective(45.0f, 0.88f, 0.1f, 1000.0f)
+					* glm::lookAt(
+						glm::vec3(-10.f,10.f,-10.f),
+						glm::vec3(5.f,5.f,5.f),
+						glm::vec3(0.f,1.f,0.f));
+
 	glUniformMatrix4fv(0, 1, GL_FALSE, &(mvp)[0][0]);
 	glDrawArrays(GL_POINTS, 0, PARTICLE_COUNT);
 
 	glViewport(1280 / 2, 0, 1280 / 2, 720);
-	mvp = glm::ortho(-8.5f, -0.5f, -8.5f, -0.5f, 0.f, 20.f) *
-			glm::lookAt(glm::vec3(-8.5f,0,0),glm::vec3(0,0,0),glm::vec3(0,1,0));
+	mvp = glm::ortho(GRID_ORIGIN[0], 
+					GRID_CELL_SIZE * (float)GRID_CELL_COUNT / 2,
+					GRID_ORIGIN[2],
+					GRID_CELL_SIZE * (float)GRID_CELL_COUNT / 2, 0.f,
+					20.f)
+		* glm::rotate(glm::mat4(1.f), 90.f, glm::vec3(0.f,1.f,0.f));
+
 	glUniformMatrix4fv(0, 1, GL_FALSE, &(mvp)[0][0]);
 	glDrawArrays(GL_POINTS, 0, PARTICLE_COUNT);
 

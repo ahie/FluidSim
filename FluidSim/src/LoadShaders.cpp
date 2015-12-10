@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <vector>
 #include <GL/glew.h>
 
 #include "LoadShaders.h"
@@ -32,10 +33,31 @@ GLuint LoadShaders(std::initializer_list<ShaderInfo> shaderInfos)
 	{
 		GLuint shader = glCreateShader(shaderInfo.type);
 		const GLchar* source = ReadShader(shaderInfo.filename);
+
 		glShaderSource(shader, 1, &source, NULL);
 		glCompileShader(shader);
-		glAttachShader(program, shader);
+
 		delete[] source;
+
+		GLint isCompiled = 0;
+		glGetShaderiv(shader, GL_COMPILE_STATUS, &isCompiled);
+		if (isCompiled == GL_FALSE)
+		{
+			GLint maxLength = 0;
+			glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &maxLength);
+
+			std::vector<GLchar> errorLog(maxLength);
+			glGetShaderInfoLog(shader, maxLength, &maxLength, &errorLog[0]);
+
+			glDeleteShader(shader);
+			
+			for (auto i : errorLog) {
+				std::cout << i;
+			}
+		}
+
+		glAttachShader(program, shader);
+
 	}
 
 	glLinkProgram(program);
