@@ -25,10 +25,10 @@ const GLfloat PARTICLE_MASS = 1000.f * 10.f * 10.f * 2.5f / 131072.f;
 const GLfloat SMOOTHING_LENGTH = 0.3125f;
 const GLfloat REST_DENSITY = 1000.0f;
 const GLfloat GAS_CONSTANT = 400.0f;
-const GLfloat VISCOSITY = 402.f;
+const GLfloat VISCOSITY = 802.f;
 const GLfloat SURFACE_TENSION_COEFFICIENT = 0.0728f;
 const GLfloat SURFACE_TENSION_THRESHOLD = 7.065f;
-const GLfloat TIME_STEP = 0.003f;
+const GLfloat TIME_STEP = 0.009f;
 
 // Pointer to main window
 static GLFWwindow* window;
