@@ -27,7 +27,7 @@ static const GLchar* ReadShader(const char* filename)
 
 GLuint LoadShaders(std::initializer_list<ShaderInfo> shaderInfos)
 {
-    GLuint program = glCreateProgram();
+	GLuint program = glCreateProgram();
 
 	for (auto shaderInfo : shaderInfos) 
 	{
@@ -51,8 +51,9 @@ GLuint LoadShaders(std::initializer_list<ShaderInfo> shaderInfos)
 
 			glDeleteShader(shader);
 			
-			for (auto i : errorLog) {
-				std::cout << i;
+			for (auto i : errorLog)
+			{
+				std::cerr << i;
 			}
 		}
 
