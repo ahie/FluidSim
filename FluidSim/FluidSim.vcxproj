@@ -22,7 +22,9 @@
     <None Include="src\glsl\FluidSim.glsl" />
     <None Include="src\glsl\FragmentShader.glsl" />
     <None Include="src\glsl\GroupCompute.glsl" />
+    <None Include="src\glsl\OffsetCompute.glsl" />
     <None Include="src\glsl\SortCompute.glsl" />
+    <None Include="src\glsl\UpdateParticles.glsl" />
     <None Include="src\glsl\VertexShader.glsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

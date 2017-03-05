@@ -4,7 +4,7 @@ layout (local_size_x = 256) in;
 
 layout (rg32i, binding = 0) uniform writeonly iimageBuffer groupID_buffer;
 layout (rg32i, binding = 1) uniform writeonly iimageBuffer sorted_groupID_buffer;
-layout (rgba32f, binding = 2) uniform readonly imageBuffer position_buffer;
+layout (rgba32f, binding = 3) uniform readonly imageBuffer position_buffer;
 
 layout (location = 0) uniform vec3 grid_origin;
 layout (location = 1) uniform int grid_cell_count;

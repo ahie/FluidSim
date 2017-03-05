@@ -45,5 +45,11 @@
     <None Include="src\glsl\VertexShader.glsl">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="src\glsl\UpdateParticles.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="src\glsl\OffsetCompute.glsl">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
